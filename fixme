@@ -1,23 +1,22 @@
-// #include <ESP8266WiFi.h>
+#include <ESP8266WiFi.h>
 #include <Adafruit_IS31FL3731.h>
-#include "data7x15.h"         // Animation data
+#include "data7x15.h"       // Flame animation data
 
-                              // using the CharlieWing
-Adafruit_IS31FL3731_Wing leds = Adafruit_IS31FL3731_Wing();
+Adafruit_IS31FL3731_Wing leds = Adafruit_IS31FL3731_Wing();   // using the FeatherWing version
 
-uint8_t        page = 0;      // Front/back buffer control
-const uint8_t *ptr  = anim;   // Current pointer into animation data
-const uint8_t  w    = 7;      // image width
-const uint8_t  h    = 15;     // image height
-uint8_t        img[w*h];      // Buffer for rendering image
-const int  buttonPin = 0;     // the pin that the pushbutton is attached to
-int buttonPushCounter = 0;    // counter for the number of button presses
-int buttonState = 0;          // current state of the button
-int lastButtonState = 0;      // previous state of the button
+uint8_t        page = 0;    // Front/back buffer control
+const uint8_t *ptr  = anim; // Current pointer into animation data
+const uint8_t  w    = 7;    // image width
+const uint8_t  h    = 15;   // image height
+uint8_t        img[w*h];    // Buffer for rendering image
+const int  buttonPin = 0;   // the pin that the pushbutton is attached to
+int buttonPushCounter = 0;  // counter for the number of button presses
+int buttonState = 0;        // current state of the button
+int lastButtonState = 0;    // previous state of the button
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Flaming Heart"); 
+  Serial.println("Yulia's Flaming Heart"); 
   pinMode(buttonPin, INPUT);
   if (! leds.begin()) {
     while (1);
@@ -26,22 +25,20 @@ void setup() {
 
 void loop() {
   buttonState = digitalRead(buttonPin);
-  if (buttonState != lastButtonState) {
-  if (buttonState == HIGH) {
+    if (buttonState != lastButtonState) {
+    if (buttonState == LOW) {
       buttonPushCounter++;
-      Serial.println("sleeping");
-      Serial.print("push twice to wake: ");
       Serial.println(buttonPushCounter);
-      //ESP.deepSleep(0);
+      delay(50);            // Delay a little bit to avoid bouncing
+      leds.clear();
+      ESP.deepSleep(0);
     } else {
-                              // if the current state is LOW then the button went from on to off:
-      Serial.println("on");
+      Serial.println("The fire burns for you");
+      Serial.print("Push button to sleep");
     }
-    // Delay a little bit to avoid bouncing
-    delay(50);
   }
-                              // save the current state as the last state, for next time through the loop
-  lastButtonState = buttonState;
+  
+  lastButtonState = buttonState;// save the current state as the last state, for next time through the loop
   if (buttonPushCounter % 2 == 0) {
   uint8_t  a, x1, y1, x2, y2, x, y;
 
@@ -62,16 +59,15 @@ void loop() {
     for(uint8_t x=x1; x<=x2; x++) { 
       img[y*w + x] = pgm_read_byte(ptr++);
   }
-  
-  page ^= 1; // Flip front/back buffer index
+
+  page ^= 1;                    // Flip front/back buffer index
   leds.setFrame(page);
   int i = 0;
   for (uint8_t x=0; x<h; x++) {
     for (uint8_t y=0; y<w; y++) {
       leds.drawPixel(x, y, img[i++]);  
+      }
     }
-  }
-
   leds.displayFrame(page);
-}
+  }
 }
